@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Approval Predictor</title>
+    <link href="https://fonts.googleapis.com/css?family=Pacifico" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f1ffde;
+        }
+        .container {
+            background-color: #ede6ce;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 600px;
+        }
+        h1 {
+            font-family: 'Pacifico', cursive;
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #485551;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+            color: #174d5a;
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="number"],
+        select,
+        input[type="radio"] {
+            width: calc(100% - 10px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        input[type="radio"] {
+            width: auto;
+            display: inline;
+        }
+        button {
+            background-color: #174d5a;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 12px 24px;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #113f49;
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
+        .prediction {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .prediction h2 {
+            color: #485551;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Loan Approval Predictor</h1>
+    <div id="loanForm">
+        <div class="form-group">
+            <label for="dependentsInput">Dependents (0-4):</label>
+            <input type="number" id="dependentsInput" min="0" max="4" required>
+            <span class="error" id="dependentsError"></span>
+        </div>
+        <div class="form-group">
+            <label for="applicantIncomeInput">Applicant Income:</label>
+            <input type="number" id="applicantIncomeInput" required>
+            <span class="error" id="applicantIncomeError"></span>
+        </div>
+        <div class="form-group">
+            <label for="coapplicantIncomeInput">Coapplicant Income:</label>
+            <input type="number" id="coapplicantIncomeInput" required>
+            <span class="error" id="coapplicantIncomeError"></span>
+        </div>
+        <div class="form-group">
+            <label for="loanAmountInput">Loan Amount:</label>
+            <input type="number" id="loanAmountInput" required>
+            <span class="error" id="loanAmountError"></span>
+        </div>
+        <div class="form-group">
+            <label for="loanAmountTermInput">Loan Amount Term:</label>
+            <input type="number" id="loanAmountTermInput" required>
+            <span class="error" id="loanAmountTermError"></span>
+        </div>
+        <div class="form-group">
+            <label>Gender:</label>
+            <input type="radio" name="gender" value="Male" required> Male
+            <input type="radio" name="gender" value="Female"> Female
+            <span class="error" id="genderError"></span>
+        </div>
+        <div class="form-group">
+            <label>Married:</label>
+            <input type="radio" name="married" value="Yes" required> Yes
+            <input type="radio" name="married" value="No"> No
+            <span class="error" id="marriedError"></span>
+        </div>
+        <div class="form-group">
+            <label>Self Employed:</label>
+            <input type="radio" name="selfEmployed" value="Yes" required> Yes
+            <input type="radio" name="selfEmployed" value="No"> No
+            <span class="error" id="selfEmployedError"></span>
+        </div>
+        <div class="form-group">
+            <label for="educationInput">Education:</label>
+            <select id="educationInput" required>
+                <option value="">Select One</option>
+                <option value="Graduate">Graduate</option>
+                <option value="Not Graduate">Not Graduate</option>
+            </select>
+            <span class="error" id="educationError"></span>
+        </div>
+        <div class="form-group">
+            <label>Property Area:</label>
+            <input type="radio" name="propertyArea" value="Urban" required> Urban
+            <input type="radio" name="propertyArea" value="Rural"> Rural
+            <span class="error" id="propertyAreaError"></span>
+        </div>
+        <div class="form-group">
+            <label>Credit History:</label>
+            <input type="radio" name="creditHistory" value="Yes" required> Yes
+            <input type="radio" name="creditHistory" value="No"> No
+            <span class="error" id="creditHistoryError"></span>
+        </div>
+        <button onclick="validateAndPredict()">Predict</button>
+    </div>
+
+    <div id="predictionResult" class="prediction" style="display: none;">
+        <h2>Prediction Result</h2>
+        <p id="predictionText"></p>
+        <button onclick="resetForm()">Enter New Data</button>
+    </div>
+</div>
+
+<script>
+    function validateAndPredict() {
+        clearErrors();
+
+        const dependents = parseInt(document.getElementById('dependentsInput').value);
+        const applicantIncome = parseInt(document.getElementById('applicantIncomeInput').value);
+        const coapplicantIncome = parseInt(document.getElementById('coapplicantIncomeInput').value);
+        const loanAmount = parseInt(document.getElementById('loanAmountInput').value);
+        const loanAmountTerm = parseInt(document.getElementById('loanAmountTermInput').value);
+        const gender = document.querySelector('input[name="gender"]:checked');
+        const married = document.querySelector('input[name="married"]:checked');
+        const selfEmployed = document.querySelector('input[name="selfEmployed"]:checked');
+        const education = document.getElementById('educationInput').value;
+        const propertyArea = document.querySelector('input[name="propertyArea"]:checked');
+        const creditHistory = document.querySelector('input[name="creditHistory"]:checked');
+
+        let isValid = true;
+
+        if (isNaN(dependents) || dependents < 0 || dependents > 4) {
+            displayError('dependentsError', 'Please enter a number between 0 and 4.');
+            isValid = false;
+        }
+
+        if (isNaN(applicantIncome) || applicantIncome <= 0) {
+            displayError('applicantIncomeError', 'Applicant income must be a positive number.');
+            isValid = false;
+        }
+
+        if (isNaN(coapplicantIncome) || coapplicantIncome < 0) {
+            displayError('coapplicantIncomeError', 'Coapplicant income cannot be negative.');
+            isValid = false;
+        }
+
+        if (isNaN(loanAmount) || loanAmount <= 0) {
+            displayError('loanAmountError', 'Loan amount must be a positive number.');
+            isValid = false;
+        }
+
+        if (isNaN(loanAmountTerm) || loanAmountTerm <= 0) {
+            displayError('loanAmountTermError', 'Loan amount term must be a positive number.');
+            isValid = false;
+        }
+
+        if (!gender) {
+            displayError('genderError', 'Please select a gender.');
+            isValid = false;
+        }
+
+        if (!married) {
+            displayError('marriedError', 'Please select marital status.');
+            isValid = false;
+        }
+
+        if (!selfEmployed) {
+            displayError('selfEmployedError', 'Please select self-employment status.');
+            isValid = false;
+        }
+
+        if (education === '') {
+            displayError('educationError', 'Please select education level.');
+            isValid = false;
+        }
+
+        if (!propertyArea) {
+            displayError('propertyAreaError', 'Please select property area (urban or rural).');
+            isValid = false;
+        }
+
+        if (!creditHistory) {
+            displayError('creditHistoryError', 'Please select credit history (yes or no).');
+            isValid = false;
+        }
+
+        if (isValid) {
+            predictLoanApproval(dependents, applicantIncome, coapplicantIncome, loanAmount, loanAmountTerm, gender.value, married.value, selfEmployed.value, education, propertyArea.value, creditHistory.value);
+        }
+    }
+
+    function predictLoanApproval(dependents, applicantIncome, coapplicantIncome, loanAmount, loanAmountTerm, gender, married, selfEmployed, education, propertyArea, creditHistory) {
+        const isApproved = Math.random() < 0.7; // Simulate loan approval probability
+        const predictionText = isApproved ? 'Congratulations! Your loan application is approved.' : 'Sorry, your loan application is rejected.';
+
+        const predictionTextElement = document.getElementById('predictionText');
+        predictionTextElement.textContent = predictionText;
+
+        // Hide the form section
+        document.getElementById('loanForm').style.display = 'none';
+
+        // Show the prediction result section
+        document.getElementById('predictionResult').style.display = 'block';
+    }
+
+    function resetForm() {
+        clearErrors();
+
+        // Reset form inputs
+        document.getElementById('dependentsInput').value = '';
+        document.getElementById('applicantIncomeInput').value = '';
+        document.getElementById('coapplicantIncomeInput').value = '';
+        document.getElementById('loanAmountInput').value = '';
+        document.getElementById('loanAmountTermInput').value = '';
+        document.querySelectorAll('input[name="gender"]').forEach(radio => radio.checked = false);
+        document.querySelectorAll('input[name="married"]').forEach(radio => radio.checked = false);
+        document.querySelectorAll('input[name="selfEmployed"]').forEach(radio => radio.checked = false);
+        document.getElementById('educationInput').value = '';
+        document.querySelectorAll('input[name="propertyArea"]').forEach(radio => radio.checked = false);
+        document.querySelectorAll('input[name="creditHistory"]').forEach(radio => radio.checked = false);
+
+        // Show the loan form section
+        document.getElementById('loanForm').style.display = 'block';
+
+        // Hide the prediction result section
+        document.getElementById('predictionResult').style.display = 'none';
+    }
+
+    function clearErrors() {
+        const errorFields = document.querySelectorAll('.error');
+        errorFields.forEach(field => {
+            field.textContent = '';
+        });
+    }
+
+    function displayError(fieldId, errorMessage) {
+        const errorField = document.getElementById(fieldId);
+        if (errorField) {
+            errorField.textContent = errorMessage;
+        }
+    }
+</script>
+
+</body>
+</html>
